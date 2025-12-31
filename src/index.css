@@ -1,1 +1,27 @@
 @import "tailwindcss";
+
+@font-face {
+	font-display: swap;
+	font-family: "Itim";
+	font-style: normal;
+	font-weight: 400;
+	src: url("/fonts/itim-v16-latin-regular.woff2") format("woff2");
+}
+
+@theme {
+	/* color */
+	--c-beige: hsl(36, 45%, 80%);
+	--c-dark-chocolate: hsl(16, 59%, 15%);
+	--c-dark-orange: hsl(16, 55%, 35%);
+	--c-gray: hsl(220, 10.17%, 46.27%);
+	--c-white: #fcecd4;
+
+	--color-main-bg: var(--c-beige);
+	--color-secondary-bg: var(--c-white);
+	--color-timer: var(--c-dark-chocolate);
+	--color-buttons: var(--c-dark-orange);
+	--color-border: var(--c-gray);
+
+	/* font */
+	--font-itim: "Itim", sans-serif;
+}
