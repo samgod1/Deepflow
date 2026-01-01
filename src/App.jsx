@@ -3,7 +3,7 @@ import Timer from "./components/Timer";
 
 function App() {
 	const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-	const [isAmbientSoundPlaying, setIsAmbientSoundPlaying] = useState(false);
+	const [isPlayingCompletedSound, setIsPlayingCompletedSound] = useState(false);
 
 	const musicRef = useRef(null);
 	const ambientSoundRef = useRef(null);
@@ -30,20 +30,34 @@ function App() {
 		const audio = ambientSoundRef.current;
 		const isSameSound = audio.src.includes(src);
 
-		// Same sound → toggle play/pause
 		if (isSameSound) {
 			if (audio.paused) {
-				audio.play(); // resumes from where it stopped
+				audio.play();
 			} else {
 				audio.pause();
 			}
 			return;
 		}
 
-		// Different sound → start fresh
 		audio.src = src;
 		audio.currentTime = 0;
 		audio.play();
+	}
+
+	function playCompleteSound() {
+		setIsPlayingCompletedSound(true);
+		const audio = musicRef.current;
+		audio.pause();
+		audio.loop = false;
+		audio.src = "/music/complete.mp3";
+		audio.play();
+		audio.onended = () => {
+			audio.src = "/music/lofi-cozy-1.mp3";
+			audio.loop = true;
+			setIsMusicPlaying(false);
+			setIsPlayingCompletedSound(false);
+			audio.onEnded = null;
+		};
 	}
 
 	useEffect(() => {
@@ -77,7 +91,12 @@ function App() {
 					width={300}
 					draggable={false}
 				/>
-				<Timer setIsMusicPlaying={setIsMusicPlaying} resetMusic={resetMusic} />
+				<Timer
+					setIsMusicPlaying={setIsMusicPlaying}
+					resetMusic={resetMusic}
+					playCompleteSound={playCompleteSound}
+					isPlayingCompletedSound={isPlayingCompletedSound}
+				/>
 			</div>
 			<div className="RIGHT flex justify-center items-center">
 				<div className="WRAPPER bg-secondary-bg w-75 h-90 rounded-xl p-5 flex flex-col outline-1 outline-border">

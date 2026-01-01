@@ -2,7 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { RiResetLeftFill } from "react-icons/ri";
 
-const Timer = ({ setIsMusicPlaying, resetMusic }) => {
+const Timer = ({
+	setIsMusicPlaying,
+	resetMusic,
+	playCompleteSound,
+	isPlayingCompletedSound,
+}) => {
+	const [initialTime, setInitialTime] = useState({ h: "00", m: "20", s: "00" });
 	const [inputs, setInputs] = useState({ h: "00", m: "20", s: "00" });
 	const [timeLeft, setTimeLeft] = useState(20 * 60 * 1000);
 	const [isRunning, setIsRunning] = useState(false);
@@ -11,33 +17,49 @@ const Timer = ({ setIsMusicPlaying, resetMusic }) => {
 	const intervalRef = useRef(null);
 
 	const toggleTimer = () => {
-		if (!isRunning) {
-			setIsEditing(false);
-			setIsMusicPlaying(true);
-			const endTime = Date.now() + timeLeft;
+		if (!isPlayingCompletedSound) {
+			if (!isRunning) {
+				setIsEditing(false);
+				setIsMusicPlaying(true);
+				const endTime = Date.now() + timeLeft;
 
-			intervalRef.current = setInterval(() => {
-				const remaining = Math.max(0, endTime - Date.now());
-				setTimeLeft(remaining);
+				intervalRef.current = setInterval(() => {
+					const remaining = Math.max(0, endTime - Date.now());
+					setTimeLeft(remaining);
 
-				if (remaining <= 0) {
-					clearInterval(intervalRef.current);
-					setIsRunning(false);
-				}
-			}, 100);
-		} else {
-			setIsMusicPlaying(false);
-			clearInterval(intervalRef.current);
+					if (remaining <= 0) {
+						clearInterval(intervalRef.current);
+						setIsRunning(false);
+						setIsEditing(true);
+
+						const h = parseInt(initialTime.h) || 0;
+						const m = parseInt(initialTime.m) || 0;
+						const s = parseInt(initialTime.s) || 0;
+
+						setTimeLeft((h * 3600 + m * 60 + s) * 1000);
+						setInputs(initialTime);
+						playCompleteSound();
+					}
+				}, 100);
+			} else {
+				setIsMusicPlaying(false);
+				clearInterval(intervalRef.current);
+			}
+			setIsRunning(!isRunning);
 		}
-		setIsRunning(!isRunning);
 	};
 
 	function reset() {
 		clearInterval(intervalRef.current);
 		setIsRunning(false);
 		setIsEditing(true);
-		setTimeLeft(20 * 60 * 1000);
-		setInputs({ h: "00", m: "20", s: "00" });
+
+		const h = parseInt(initialTime.h) || 0;
+		const m = parseInt(initialTime.m) || 0;
+		const s = parseInt(initialTime.s) || 0;
+
+		setTimeLeft((h * 3600 + m * 60 + s) * 1000);
+		setInputs(initialTime);
 		resetMusic();
 	}
 
@@ -47,6 +69,8 @@ const Timer = ({ setIsMusicPlaying, resetMusic }) => {
 
 		const newInputs = { ...inputs, [name]: val };
 		setInputs(newInputs);
+
+		setInitialTime(newInputs);
 
 		const h = parseInt(newInputs.h) || 0;
 		const m = parseInt(newInputs.m) || 0;
