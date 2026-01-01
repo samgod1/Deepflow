@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { RiResetLeftFill } from "react-icons/ri";
-import { TbMeat } from "react-icons/tb";
 
-const Timer = () => {
+const Timer = ({ setIsMusicPlaying, resetMusic }) => {
 	const [inputs, setInputs] = useState({ h: "00", m: "20", s: "00" });
 	const [timeLeft, setTimeLeft] = useState(20 * 60 * 1000);
 	const [isRunning, setIsRunning] = useState(false);
@@ -14,6 +13,7 @@ const Timer = () => {
 	const toggleTimer = () => {
 		if (!isRunning) {
 			setIsEditing(false);
+			setIsMusicPlaying(true);
 			const endTime = Date.now() + timeLeft;
 
 			intervalRef.current = setInterval(() => {
@@ -26,6 +26,7 @@ const Timer = () => {
 				}
 			}, 100);
 		} else {
+			setIsMusicPlaying(false);
 			clearInterval(intervalRef.current);
 		}
 		setIsRunning(!isRunning);
@@ -37,6 +38,7 @@ const Timer = () => {
 		setIsEditing(true);
 		setTimeLeft(20 * 60 * 1000);
 		setInputs({ h: "00", m: "20", s: "00" });
+		resetMusic();
 	}
 
 	function handleChange(e) {
