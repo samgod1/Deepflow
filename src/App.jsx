@@ -1,9 +1,13 @@
 import { useRef, useState, useEffect } from "react";
+import { FaPlay, FaPause, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
+
 import Timer from "./components/Timer";
 
 function App() {
 	const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 	const [isPlayingCompletedSound, setIsPlayingCompletedSound] = useState(false);
+	const [volume, setVolume] = useState(0.5);
+	const [isMuted, setIsMuted] = useState(false);
 
 	const musicRef = useRef(null);
 	const ambientSoundRef = useRef(null);
@@ -60,6 +64,20 @@ function App() {
 		};
 	}
 
+	function handleChangeVolume(e) {
+		setVolume(e.target.value);
+		musicRef.current.volume = parseFloat(e.target.value);
+		ambientSoundRef.current.volume = parseFloat(e.target.value);
+		setIsMuted(e.target.value == 0);
+	}
+
+	function mute() {
+		setVolume(0);
+		musicRef.current.volume = 0;
+		ambientSoundRef.current.volume = 0;
+		setIsMuted(true);
+	}
+
 	useEffect(() => {
 		if (isMusicPlaying) {
 			musicRef.current.play();
@@ -68,20 +86,64 @@ function App() {
 		}
 	}, [isMusicPlaying]);
 
+	useEffect(() => {
+		if (volume == 0) {
+			setIsMuted(true);
+		} else {
+			setIsMuted(false);
+		}
+	}, [volume]);
+
 	return (
 		<main className="bg-main-bg h-dvh grid grid-cols-3 font-itim">
 			<div className="LEFT flex justify-center items-center">
 				<div className="WRAPPER">
-					<img
-						src="/images/music-player.png"
-						alt="music"
-						width={250}
-						draggable={false}
-					/>
+					<span className="relative">
+						<img
+							src="/images/music-player.png"
+							alt="music"
+							width={250}
+							draggable={false}
+						/>
+						<div className="musicControls w-full absolute bottom-5 right-[50%] translate-x-1/2 flex flex-col">
+							<span className="text-center text-2xl">Lofi Sounds</span>
+							<div className="flex justify-center items-center gap-2">
+								<button
+									className="cursor-pointer"
+									onClick={() => {
+										setIsMusicPlaying(!isMusicPlaying);
+									}}
+								>
+									{isMusicPlaying ? (
+										<FaPause size={15} />
+									) : (
+										<FaPlay size={15} />
+									)}
+								</button>
+								<input
+									type="range"
+									min="0"
+									max="1"
+									step="0.01"
+									className="w-30 h-3 bg-slider border-1 border-border rounded-xs appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-slider-thumb [&::-webkit-slider-thumb]:outline-1 [&::-webkit-slider-thumb]:outline-border"
+									onChange={handleChangeVolume}
+									value={volume}
+								/>
+								<button className="cursor-pointer" onClick={mute}>
+									{isMuted ? (
+										<FaVolumeMute size={20} />
+									) : (
+										<FaVolumeUp size={20} />
+									)}
+								</button>
+							</div>
+						</div>
+					</span>
 
 					<audio src="/music/lofi-cozy-1.mp3" ref={musicRef} loop />
 				</div>
 			</div>
+
 			<div className="CENTER flex flex-col justify-evenly items-center">
 				<img src="/images/logo.png" alt="logo" width={250} draggable={false} />
 				<img
@@ -98,8 +160,14 @@ function App() {
 					isPlayingCompletedSound={isPlayingCompletedSound}
 				/>
 			</div>
+
 			<div className="RIGHT flex justify-center items-center">
-				<div className="WRAPPER bg-secondary-bg w-75 h-90 rounded-xl p-5 flex flex-col outline-1 outline-border">
+				<div
+					className="WRAPPER w-75 h-90 rounded-xl p-5 flex flex-col outline-1 outline-border bg-gradient-to-br 
+  from-[#FEF8F2] 
+  via-[#FCECD4] 
+  to-[#F9E5D0]"
+				>
 					{/* Ambient sound player */}
 					<audio src="/music/rain-sound.mp3" ref={ambientSoundRef} loop />
 
@@ -109,7 +177,7 @@ function App() {
 					<div className="BUTTONS_CONTAINER grid grid-cols-2 gap-4 grid-rows-2 grow min-h-0">
 						{/* Rain Button */}
 						<button
-							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0"
+							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0 bg-rain-bg transition-all duration-200 hover:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.7)_0%,transparent_70%)]"
 							onClick={playAmbientSound}
 							name="rain"
 						>
@@ -123,7 +191,7 @@ function App() {
 						</button>
 						{/* Firecamp Button */}
 						<button
-							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0"
+							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0 bg-firecamp-bg transition-all duration-200 hover:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.7)_0%,transparent_70%)]"
 							onClick={playAmbientSound}
 							name="firecamp"
 						>
@@ -137,7 +205,7 @@ function App() {
 						</button>
 						{/* Forest Button */}
 						<button
-							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0"
+							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0 bg-forest-bg transition-all duration-200 hover:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.7)_0%,transparent_70%)]"
 							onClick={playAmbientSound}
 							name="forest"
 						>
@@ -151,7 +219,7 @@ function App() {
 						</button>
 						{/* Cafe Button */}
 						<button
-							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0"
+							className="outline outline-border rounded-lg flex flex-col items-center justify-between py-2 overflow-hidden cursor-pointer min-h-0 bg-cafe-bg transition-all duration-200 hover:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.7)_0%,transparent_70%)]"
 							onClick={playAmbientSound}
 							name="cafe"
 						>

@@ -14,13 +14,23 @@
 	--c-dark-chocolate: hsl(16, 59%, 15%);
 	--c-dark-orange: hsl(16, 55%, 35%);
 	--c-gray: hsl(220, 10.17%, 46.27%);
-	--c-white: #fcecd4;
+	--c-white: #f9f8f4;
+	--c-light-blue: #d9e3f0;
+	--c-light-red: #e8b4b4;
+	--c-light-green: #b7d9b8;
+	--c-light-brown: #d6c3ae;
+	--c-darker-brown: #d9a066;
 
 	--color-main-bg: var(--c-beige);
-	--color-secondary-bg: var(--c-white);
 	--color-timer: var(--c-dark-chocolate);
 	--color-buttons: var(--c-dark-orange);
 	--color-border: var(--c-gray);
+	--color-rain-bg: var(--c-light-blue);
+	--color-firecamp-bg: var(--c-light-red);
+	--color-forest-bg: var(--c-light-green);
+	--color-cafe-bg: var(--c-light-brown);
+	--color-slider: var(--c-darker-brown);
+	--color-slider-thumb: var(--c-light-brown);
 
 	/* font */
 	--font-itim: "Itim", sans-serif;
