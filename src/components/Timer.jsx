@@ -88,7 +88,7 @@ const Timer = ({
 
 	return (
 		<div className="w-full flex flex-col items-center gap-2">
-			<div className="text-7xl font-bold text-timer tabular-nums">
+			<div className="text-5xl md:text-7xl font-bold text-timer tabular-nums">
 				{isEditing ? (
 					<div className="flex items-center">
 						<input

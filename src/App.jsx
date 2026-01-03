@@ -1,7 +1,9 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { FaPlay, FaPause, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 
 import Timer from "./components/Timer";
+
+import { ambientSounds, allMusicList } from "./constants";
 
 function App() {
 	const [isMusicPlaying, setIsMusicPlaying] = useState(false);
@@ -9,8 +11,47 @@ function App() {
 	const [volume, setVolume] = useState(0.5);
 	const [isMuted, setIsMuted] = useState(false);
 
+	const [playlist, setPlaylist] = useState(() => {
+		const arr = [...allMusicList];
+		for (let i = arr.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[arr[i], arr[j]] = [arr[j], arr[i]];
+		}
+		return arr;
+	});
+	const [currentIndex, setCurrentIndex] = useState(0);
+
 	const musicRef = useRef(null);
 	const ambientSoundRef = useRef(null);
+
+	const shuffle = useCallback((array) => {
+		const newArr = [...array];
+		for (let i = newArr.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+		}
+		return newArr;
+	}, []);
+
+	const handleMusicEnded = useCallback(() => {
+		// If the 'Timer Complete' sound just finished
+		if (isPlayingCompletedSound) {
+			setIsPlayingCompletedSound(false);
+			setIsMusicPlaying(false);
+			// Reset source back to the current song in playlist
+			musicRef.current.src = playlist[currentIndex];
+			return;
+		}
+
+		// Logic for shuffling/moving to next song
+		if (currentIndex >= playlist.length - 1) {
+			const newShuffledList = shuffle(allMusicList);
+			setPlaylist(newShuffledList);
+			setCurrentIndex(0);
+		} else {
+			setCurrentIndex((prev) => prev + 1);
+		}
+	}, [currentIndex, playlist, shuffle, isPlayingCompletedSound]);
 
 	function resetMusic() {
 		musicRef.current.pause();
@@ -21,14 +62,7 @@ function App() {
 	function playAmbientSound(e) {
 		const { name } = e.currentTarget;
 
-		const sounds = {
-			rain: "/music/rain.mp3",
-			firecamp: "/music/firecamp.mp3",
-			forest: "/music/forest.mp3",
-			cafe: "/music/cafe.mp3",
-		};
-
-		const src = sounds[name];
+		const src = ambientSounds[name];
 		if (!src) return;
 
 		const audio = ambientSoundRef.current;
@@ -50,18 +84,8 @@ function App() {
 
 	function playCompleteSound() {
 		setIsPlayingCompletedSound(true);
-		const audio = musicRef.current;
-		audio.pause();
-		audio.loop = false;
-		audio.src = "/music/complete.mp3";
-		audio.play();
-		audio.onended = () => {
-			audio.src = "/music/lofi-cozy-1.mp3";
-			audio.loop = true;
-			setIsMusicPlaying(false);
-			setIsPlayingCompletedSound(false);
-			audio.onEnded = null;
-		};
+		musicRef.current.src = "/music/soundEffect/complete.mp3";
+		musicRef.current.play();
 	}
 
 	function handleChangeVolume(e) {
@@ -94,19 +118,28 @@ function App() {
 		}
 	}, [volume]);
 
+	useEffect(() => {
+		if (playlist.length > 0 && !isPlayingCompletedSound) {
+			musicRef.current.src = playlist[currentIndex];
+			if (isMusicPlaying) musicRef.current.play();
+		}
+	}, [currentIndex, playlist, isPlayingCompletedSound]);
+
 	return (
-		<main className="bg-main-bg h-dvh grid grid-cols-3 font-itim">
-			<div className="LEFT flex justify-center items-center">
-				<div className="WRAPPER">
+		<main className="bg-main-bg min-h-dvh min-[500px]:h-dvh flex flex-col min-[500px]:grid min-[500px]:grid-cols-3 font-itim">
+			<div className="LEFT order-3 min-[500px]:order-none flex justify-center items-center py-10 min-[500px]:py-0">
+				<div className="WRAPPER w-full max-w-[260px]">
 					<span className="relative">
 						<img
 							src="/images/music-player.png"
 							alt="music"
-							width={250}
+							className="w-full"
 							draggable={false}
 						/>
-						<div className="musicControls w-full absolute bottom-5 right-[50%] translate-x-1/2 flex flex-col">
-							<span className="text-center text-2xl">Lofi Sounds</span>
+						<div className="musicControls w-full absolute bottom-[8%] right-[50%] translate-x-1/2 flex flex-col">
+							<span className="text-center text-xl min-[725px]:text-2xl max-[725px]:text-sm">
+								Lofi Sounds
+							</span>
 							<div className="flex justify-center items-center gap-2">
 								<button
 									className="cursor-pointer"
@@ -125,7 +158,7 @@ function App() {
 									min="0"
 									max="1"
 									step="0.01"
-									className="w-30 h-3 bg-slider border-1 border-border rounded-xs appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-slider-thumb [&::-webkit-slider-thumb]:outline-1 [&::-webkit-slider-thumb]:outline-border"
+									className="w-[45%] h-2 min-[725px]:h-3 bg-slider border-1 border-border rounded-xs appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-slider-thumb [&::-webkit-slider-thumb]:outline-1 [&::-webkit-slider-thumb]:outline-border"
 									onChange={handleChangeVolume}
 									value={volume}
 								/>
@@ -140,17 +173,21 @@ function App() {
 						</div>
 					</span>
 
-					<audio src="/music/lofi-cozy-1.mp3" ref={musicRef} loop />
+					<audio ref={musicRef} onEnded={handleMusicEnded} />
 				</div>
 			</div>
 
-			<div className="CENTER flex flex-col justify-evenly items-center">
-				<img src="/images/logo.png" alt="logo" width={250} draggable={false} />
+			<div className="CENTER order-1 min-[500px]:order-none flex flex-col justify-evenly items-center py-10 min-[500px]:py-0 gap-8 min-[500px]:gap-0">
+				<img
+					src="/images/logo.png"
+					alt="logo"
+					className="w-full max-w-[250px]"
+					draggable={false}
+				/>
 				<img
 					src="/images/candle.png"
 					alt="candle"
-					className="block"
-					width={300}
+					className="block w-full max-w-[300px]"
 					draggable={false}
 				/>
 				<Timer
@@ -161,9 +198,9 @@ function App() {
 				/>
 			</div>
 
-			<div className="RIGHT flex justify-center items-center">
+			<div className="RIGHT order-2 min-[500px]:order-none flex justify-center items-center py-10 min-[500px]:py-0">
 				<div
-					className="WRAPPER w-75 h-90 rounded-xl p-5 flex flex-col outline-1 outline-border bg-gradient-to-br 
+					className="WRAPPER w-full max-w-[300px] aspect-[300/360] rounded-xl p-5 flex flex-col outline-1 outline-border bg-gradient-to-br 
   from-[#FEF8F2] 
   via-[#FCECD4] 
   to-[#F9E5D0]"
@@ -184,10 +221,10 @@ function App() {
 							<img
 								src="/images/rain.png"
 								alt="rain"
-								className="h-20"
+								className="w-[60%] object-contain"
 								draggable={false}
 							/>
-							<span>Rain</span>
+							<span className="text-sm sm:text-base">Rain</span>
 						</button>
 						{/* Firecamp Button */}
 						<button
@@ -198,10 +235,10 @@ function App() {
 							<img
 								src="/images/firecamp.png"
 								alt="firecamp"
-								className="h-20"
+								className="w-[60%] object-contain"
 								draggable={false}
 							/>
-							<span>Firecamp</span>
+							<span className="text-sm sm:text-base">Firecamp</span>
 						</button>
 						{/* Forest Button */}
 						<button
@@ -212,10 +249,10 @@ function App() {
 							<img
 								src="/images/forest.png"
 								alt="forest"
-								className="h-20"
+								className="w-[60%] object-contain"
 								draggable={false}
 							/>
-							<span>Forest</span>
+							<span className="text-sm sm:text-base">Forest</span>
 						</button>
 						{/* Cafe Button */}
 						<button
@@ -226,10 +263,10 @@ function App() {
 							<img
 								src="/images/cafe.png"
 								alt="cafe"
-								className="h-20"
+								className="w-[60%] object-contain"
 								draggable={false}
 							/>
-							<span>Cafe</span>
+							<span className="text-sm sm:text-base">Cafe</span>
 						</button>
 					</div>
 				</div>
